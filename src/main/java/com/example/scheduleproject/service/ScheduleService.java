@@ -34,6 +34,8 @@ public class ScheduleService {
      */
     @Transactional
     public CreateScheduleResponse save(CreateScheduleRequest request) {
+        VaildateSchedule(request);
+
         Schedule schedule = new Schedule(
                 request.getTitle(),
                 request.getContents(),
@@ -181,6 +183,31 @@ public class ScheduleService {
 
         } else {
             throw new IllegalStateException("비밀번호가 다릅니다.");
+        }
+    }
+
+    /**
+     * 일정 정보 유효성 검증
+     * @param request 검증할 DTO
+     */
+    public void VaildateSchedule(CreateScheduleRequest request) {
+        if (request.getTitle() == null || request.getTitle().isBlank()) {
+            throw new IllegalStateException("일정 제목은 필수입니다.");
+        }
+        if (request.getTitle().length() > 30) {
+            throw new IllegalStateException("일정 제목은 최대 30자 이내입니다.");
+        }
+        if (request.getContents() == null || request.getContents().isBlank()) {
+            throw new IllegalStateException("일정 내용은 필수입니다.");
+        }
+        if (request.getContents().length() > 200) {
+            throw new IllegalStateException("일정 내용은 최대 100자 이내입니다.");
+        }
+        if (request.getPassword() == null || request.getPassword().isBlank()) {
+            throw new IllegalStateException("일정 비밀번호는 필수입니다.");
+        }
+        if (request.getWriter() == null || request.getWriter().isBlank()) {
+            throw new IllegalStateException("일정 작성자는 필수입니다.");
         }
     }
 }
