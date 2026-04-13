@@ -57,7 +57,8 @@ public class ScheduleController {
      * 선택한 일정 수정
      * 고유 식별자를 기준으로 일정 수정
      *
-     * @param scheduleId 조회할 일정의 고유 식별자
+     * @param scheduleId 수정할 일정의 고유 식별자
+     * @param request 수정할 일정의 요청 DTO
      * @return 일정 목록 응답 DTO와 HTTP 200 상태 코드
      */
     @PatchMapping("/schedules/{scheduleId}")
@@ -66,5 +67,22 @@ public class ScheduleController {
             @RequestBody UpdateScheduleRequest request
             ) {
         return ResponseEntity.status(HttpStatus.OK).body(scheduleService.update(scheduleId, request));
+    }
+
+    /**
+     * 선택한 일정 삭제
+     * 고유 식별자를 기준으로 일정 삭제
+     *
+     * @param scheduleId 삭제할 일정의 고유 식별자
+     * @param request 삭제할 일정의 요청 DTO
+     * @return HTTP 204 상태 코드
+     */
+    @DeleteMapping("/schedules/{scheduleId}")
+    public ResponseEntity<Void> delete(
+            @PathVariable Long scheduleId,
+            @RequestBody UpdateScheduleRequest request
+    ) {
+        scheduleService.delete(scheduleId, request);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }
