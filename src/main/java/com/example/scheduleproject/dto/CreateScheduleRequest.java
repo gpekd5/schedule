@@ -13,4 +13,5 @@ public class CreateScheduleRequest {
     private String contents;
     private String writer;
     private String password;
+
 }
