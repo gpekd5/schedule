@@ -2,11 +2,16 @@ package com.example.scheduleproject.service;
 
 import com.example.scheduleproject.dto.CreateScheduleRequest;
 import com.example.scheduleproject.dto.CreateScheduleResponse;
+import com.example.scheduleproject.dto.GetScheduleResponse;
 import com.example.scheduleproject.entity.Schedule;
 import com.example.scheduleproject.repository.ScheduleRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 일정 관련 비즈니스 로직을 처리하는 서비스 클래스
@@ -46,4 +51,44 @@ public class ScheduleService {
         );
     }
 
+    @Transactional(readOnly = true)
+    public List<GetScheduleResponse> findAll(String writer) {
+        List<Schedule> schedules;
+
+        if (writer == null || writer.isBlank()) {
+            schedules = scheduleRepository.findAll(Sort.by(Sort.Direction.DESC, "modifiedAt"));
+        } else {
+           schedules = scheduleRepository.findByWriter(writer, Sort.by(Sort.Direction.DESC, "modifiedAt"));
+        }
+        List<GetScheduleResponse> dtos = new ArrayList<>();
+        for (Schedule schedule : schedules) {
+            GetScheduleResponse dto = new GetScheduleResponse(
+                    schedule.getId(),
+                    schedule.getTitle(),
+                    schedule.getContents(),
+                    schedule.getWriter(),
+                    schedule.getCreatedAt(),
+                    schedule.getModifiedAt()
+            );
+
+            dtos.add(dto);
+        }
+        return dtos;
+    }
+
+    @Transactional(readOnly = true)
+    public GetScheduleResponse findOne(Long scheduleId) {
+        Schedule schedule = scheduleRepository.findById(scheduleId).orElseThrow(
+                () -> new IllegalStateException("없는 일정입니다.")
+        );
+
+        return new GetScheduleResponse(
+                schedule.getId(),
+                schedule.getTitle(),
+                schedule.getContents(),
+                schedule.getWriter(),
+                schedule.getCreatedAt(),
+                schedule.getModifiedAt()
+        );
+    }
 }
