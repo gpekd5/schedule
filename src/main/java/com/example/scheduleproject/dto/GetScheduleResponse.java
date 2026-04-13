@@ -4,6 +4,10 @@ import lombok.Getter;
 
 import java.time.LocalDateTime;
 
+/**
+ * 일정 조회 응답 데이터를 전달하는 DTO
+ * 일정의 고유 식별자, 제목, 내용, 작성자명, 생성일, 수정일 정보 포함
+ */
 @Getter
 public class GetScheduleResponse {
 
