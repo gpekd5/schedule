@@ -49,7 +49,7 @@ public class ScheduleController {
      * @return 일정 목록 응답 DTO와 HTTP 200 상태 코드
      */
     @GetMapping("/schedules/{scheduleId}")
-    public ResponseEntity<GetScheduleResponse> getOneSchedule(@PathVariable Long scheduleId) {
+    public ResponseEntity<GetScheduleCommentsResponse> getOneSchedule(@PathVariable Long scheduleId) {
         return  ResponseEntity.status(HttpStatus.OK).body(scheduleService.findOne(scheduleId));
     }
 

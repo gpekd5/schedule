@@ -1,7 +1,9 @@
 package com.example.scheduleproject.service;
 
 import com.example.scheduleproject.dto.*;
+import com.example.scheduleproject.entity.Comment;
 import com.example.scheduleproject.entity.Schedule;
+import com.example.scheduleproject.repository.CommentRepository;
 import com.example.scheduleproject.repository.ScheduleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
@@ -20,6 +22,7 @@ import java.util.List;
 public class ScheduleService {
 
     private final ScheduleRepository scheduleRepository;
+    private final CommentRepository commentRepository;
 
     /**
      * 새로운 일정 저장
@@ -90,18 +93,35 @@ public class ScheduleService {
      * @return 조회된 일정 정보를 담은 응답 DTO
      */
     @Transactional(readOnly = true)
-    public GetScheduleResponse findOne(Long scheduleId) {
+    public GetScheduleCommentsResponse findOne(Long scheduleId) {
         Schedule schedule = scheduleRepository.findById(scheduleId).orElseThrow(
                 () -> new IllegalStateException("없는 일정입니다.")
         );
 
-        return new GetScheduleResponse(
+        List<Comment> comments = commentRepository.findByScheduleId(scheduleId);
+
+        List<GetCommentResponse> commentDtos = new ArrayList<>();
+        for (Comment comment : comments) {
+            GetCommentResponse dto = new GetCommentResponse(
+                    comment.getId(),
+                    comment.getCommentContent(),
+                    comment.getCommentWriter(),
+                    comment.getScheduleId(),
+                    comment.getCreatedAt(),
+                    comment.getModifiedAt()
+            );
+
+            commentDtos.add(dto);
+        }
+
+        return new GetScheduleCommentsResponse(
                 schedule.getId(),
                 schedule.getTitle(),
                 schedule.getContents(),
                 schedule.getWriter(),
                 schedule.getCreatedAt(),
-                schedule.getModifiedAt()
+                schedule.getModifiedAt(),
+                commentDtos
         );
     }
 
