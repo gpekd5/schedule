@@ -64,7 +64,7 @@ public class ScheduleService {
         if (writer == null || writer.isBlank()) {
             schedules = scheduleRepository.findAll(Sort.by(Sort.Direction.DESC, "modifiedAt"));
         } else {
-           schedules = scheduleRepository.findByWriter(writer, Sort.by(Sort.Direction.DESC, "modifiedAt"));
+            schedules = scheduleRepository.findByWriter(writer, Sort.by(Sort.Direction.DESC, "modifiedAt"));
         }
         List<GetScheduleResponse> dtos = new ArrayList<>();
         for (Schedule schedule : schedules) {
@@ -110,8 +110,8 @@ public class ScheduleService {
      * scheduleId에 해당하는 일정이 없으면 예외 발생
      * 비밀번호가 일치하지 않으면 예외 발생
      *
-     * @param scheduleId
-     * @param request
+     * @param scheduleId 수정할 아이디
+     * @param request 수정할 내용
      * @return
      */
     @Transactional
@@ -121,8 +121,7 @@ public class ScheduleService {
                 () -> new IllegalStateException("없는 일정입니다.")
         );
 
-        if (schedule.getPassword().equals(request.getPassword()))
-        {
+        if (schedule.getPassword().equals(request.getPassword())) {
             schedule.update(request.getTitle(), request.getWriter());
 
             scheduleRepository.flush();
@@ -135,6 +134,31 @@ public class ScheduleService {
                     schedule.getCreatedAt(),
                     schedule.getModifiedAt()
             );
+        } else {
+            throw new IllegalStateException("비밀번호가 다릅니다.");
+        }
+    }
+
+    /**
+     * 일정 삭제
+     * scheduleId에 해당하는 일정이 없으면 예외 발생
+     * 비밀번호가 일치하지 않으면 예외 발생
+     *
+     * @param scheduleId 삭제할 아이디
+     * @param request 삭제할 내용
+     */
+    @Transactional
+    public void delete(Long scheduleId, UpdateScheduleRequest request) {
+
+        Schedule schedule = scheduleRepository.findById(scheduleId).orElseThrow(
+                () -> new IllegalStateException("없는 일정입니다.")
+        );
+
+        if (schedule.getPassword().equals(request.getPassword())) {
+            schedule.update(request.getTitle(), request.getWriter());
+
+            scheduleRepository.deleteById(scheduleId);
+
         } else {
             throw new IllegalStateException("비밀번호가 다릅니다.");
         }
