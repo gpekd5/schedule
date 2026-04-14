@@ -3,6 +3,7 @@ package com.example.scheduleproject.dto;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 일정 조회 응답 데이터를 전달하는 DTO

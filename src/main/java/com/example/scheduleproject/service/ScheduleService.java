@@ -1,7 +1,9 @@
 package com.example.scheduleproject.service;
 
 import com.example.scheduleproject.dto.*;
+import com.example.scheduleproject.entity.Comment;
 import com.example.scheduleproject.entity.Schedule;
+import com.example.scheduleproject.repository.CommentRepository;
 import com.example.scheduleproject.repository.ScheduleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
@@ -20,6 +22,7 @@ import java.util.List;
 public class ScheduleService {
 
     private final ScheduleRepository scheduleRepository;
+    private final CommentRepository commentRepository;
 
     /**
      * 새로운 일정 저장
@@ -31,6 +34,8 @@ public class ScheduleService {
      */
     @Transactional
     public CreateScheduleResponse save(CreateScheduleRequest request) {
+        VaildateSchedule(request);
+
         Schedule schedule = new Schedule(
                 request.getTitle(),
                 request.getContents(),
@@ -90,18 +95,35 @@ public class ScheduleService {
      * @return 조회된 일정 정보를 담은 응답 DTO
      */
     @Transactional(readOnly = true)
-    public GetScheduleResponse findOne(Long scheduleId) {
+    public GetScheduleCommentsResponse findOne(Long scheduleId) {
         Schedule schedule = scheduleRepository.findById(scheduleId).orElseThrow(
                 () -> new IllegalStateException("없는 일정입니다.")
         );
 
-        return new GetScheduleResponse(
+        List<Comment> comments = commentRepository.findByScheduleId(scheduleId);
+
+        List<GetCommentResponse> commentDtos = new ArrayList<>();
+        for (Comment comment : comments) {
+            GetCommentResponse dto = new GetCommentResponse(
+                    comment.getId(),
+                    comment.getCommentContent(),
+                    comment.getCommentWriter(),
+                    comment.getScheduleId(),
+                    comment.getCreatedAt(),
+                    comment.getModifiedAt()
+            );
+
+            commentDtos.add(dto);
+        }
+
+        return new GetScheduleCommentsResponse(
                 schedule.getId(),
                 schedule.getTitle(),
                 schedule.getContents(),
                 schedule.getWriter(),
                 schedule.getCreatedAt(),
-                schedule.getModifiedAt()
+                schedule.getModifiedAt(),
+                commentDtos
         );
     }
 
@@ -161,6 +183,31 @@ public class ScheduleService {
 
         } else {
             throw new IllegalStateException("비밀번호가 다릅니다.");
+        }
+    }
+
+    /**
+     * 일정 정보 유효성 검증
+     * @param request 검증할 DTO
+     */
+    public void VaildateSchedule(CreateScheduleRequest request) {
+        if (request.getTitle() == null || request.getTitle().isBlank()) {
+            throw new IllegalStateException("일정 제목은 필수입니다.");
+        }
+        if (request.getTitle().length() > 30) {
+            throw new IllegalStateException("일정 제목은 최대 30자 이내입니다.");
+        }
+        if (request.getContents() == null || request.getContents().isBlank()) {
+            throw new IllegalStateException("일정 내용은 필수입니다.");
+        }
+        if (request.getContents().length() > 200) {
+            throw new IllegalStateException("일정 내용은 최대 100자 이내입니다.");
+        }
+        if (request.getPassword() == null || request.getPassword().isBlank()) {
+            throw new IllegalStateException("일정 비밀번호는 필수입니다.");
+        }
+        if (request.getWriter() == null || request.getWriter().isBlank()) {
+            throw new IllegalStateException("일정 작성자는 필수입니다.");
         }
     }
 }

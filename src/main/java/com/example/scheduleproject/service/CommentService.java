@@ -34,6 +34,8 @@ public class CommentService {
      */
     @Transactional
     public CreateCommentResponse save(Long scheduleId,CreateCommentRequest request) {
+        VaildateComment(request);
+
         Schedule schedule = scheduleRepository.findById(scheduleId).orElseThrow(
                 () -> new IllegalStateException("없는 일정입니다.")
         );
@@ -61,6 +63,25 @@ public class CommentService {
                 saveComment.getModifiedAt()
         );
 
+    }
+
+    /**
+     * 댓글 정보 유효성 검증
+     * @param request 검증할 DTO
+     */
+    public void VaildateComment(CreateCommentRequest request) {
+        if (request.getCommentContent() == null || request.getCommentContent().isBlank()) {
+            throw new IllegalStateException("댓글 내용은 필수입니다.");
+        }
+        if (request.getCommentContent().length() > 100) {
+            throw new IllegalStateException("댓글 내용은 최대 100자 이내입니다.");
+        }
+        if (request.getCommentPassword() == null || request.getCommentPassword().isBlank()) {
+            throw new IllegalStateException("댓글 비밀번호는 필수입니다.");
+        }
+        if (request.getCommentWriter() == null || request.getCommentWriter().isBlank()) {
+            throw new IllegalStateException("댓글 작성자는 필수입니다.");
+        }
     }
 
 }
