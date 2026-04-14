@@ -10,8 +10,41 @@
  - https://www.notion.so/CH3-API-3411cb3a8fa480e5ad3fdb946560a620?source=copy_link
 
 ### 2. ERD
- - 테이블 관계 이미지
- - 각 테이블 설명
+
+### schedules 테이블
+
+| 필드명 | 타입 | 설명 | 키 |
+|--------|------|------|----|
+| id | Long | 일정 식별자 | PK |
+| title | String | 일정 제목 |  |
+| contents | String | 일정 내용 |  |
+| writer | String | 작성자명 |  |
+| password | String | 비밀번호 |  |
+| createdAt | LocalDateTime | 작성일 |  |
+| modifiedAt | LocalDateTime | 수정일 |  |
+
+---
+
+### comments 테이블
+
+| 필드명 | 타입 | 설명 | 키 |
+|--------|------|------|----|
+| id | Long | 댓글 식별자 | PK |
+| scheduleId | Long | 일정 식별자 | FK |
+| commentContent | String | 댓글 내용 |  |
+| commentWriter | String | 댓글 작성자명 |  |
+| commentPassword | String | 댓글 비밀번호 |  |
+| createdAt | LocalDateTime | 작성일 |  |
+| modifiedAt | LocalDateTime | 수정일 |  |
+
+---
+
+### 테이블 관계
+
+| 부모 테이블 | 자식 테이블 | 관계 | 설명 |
+|-------------|-------------|------|------|
+| schedules | comments | 1 : N | 하나의 일정에 여러 개의 댓글이 작성될 수 있음 |
+
 
 > ## 📌 주요기능
 
@@ -91,3 +124,36 @@
 - GitHub
 
 > ## 🔥 Trouble Shooting
+### 1. PATCH 수정 시 수정일이 POSTMAN 응답에서 바로 반영되지 않는 문제
+
+- 문제  
+  일정 수정 API 호출 후 DB에는 `modifiedAt`가 변경이 되었지만,
+  Postman 응답에서는 이전 수정일이 보이고 한 번 더 요청해야 최신 수정일이 보이는 문제 발생
+
+- 원인
+  JPA Auditing의` @LastModifiedDate`는 엔티티가 변경된 직후 즉시 보이는 것이 아니라,
+  flush 혹은 commit 시점에 반영되는 특성이 있었다.
+  따라서 응답 DTO를 너무 이른 시점에 생성하면 이전 값이 담길 수 있었다.
+
+- 해결  
+  수정 로직 이후 `flush()` 호출
+  ```java
+  scheduleRepository.flush();
+  ```
+
+### 2. 댓글 생성 요청에서 ScheduleId를 어디서 받아야 하는지 고민
+
+- 문제  
+  댓글 생성 시 `ScheduleId`를 통해 댓글 테이블과 일정 테이블을 연결하려고 하였으나,
+  RequestBody 둘지, URL PathVariable로 받을지 고민하였다.
+
+- 원인  
+  처음에는 댓글 생성 요청 DTO 안에 scheduleId를 넣었지만,
+  이미 URL에서 /schedules/{scheduleId}/comments 형태로 일정 id를 받고 있었기 때문에 중복 구조가 되었다.
+
+- 해결  
+  PathVariable로 받은 scheduleId를 기준으로 처리하고,
+  Request DTO에서는 댓글 내용, 작성자명, 비밀번호만 받도록 수정하였다.
+  Response DTO에는 필요한 경우 scheduleId를 포함할 수 있도록 정리하였다.
+
+> #### Velog Url = https://velog.io/@gpekd5/TIL-Schedule-%EA%B3%BC%EC%A0%9C
